@@ -22,7 +22,7 @@ using namespace boost::asio;
 #define MEM_FN2(x,y,z) boost::bind(&self_type::x, shared_from_this(),y,z)
 
 
-talk_to_server::talk_to_server(io_service& service, const std::string& username, std::vector<Cube*>& cubes) :  m_sock(service), b_started(true), s_username(username), m_timer(service), m_cubes(cubes) {
+talk_to_server::talk_to_server(io_service& service, const std::string& username, std::vector<Cube*>& tubes) :  m_sock(service), b_started(true), s_username(username), m_timer(service), m_cubes(tubes) {
     std::cout << "Constructor" << std::endl;
 }
 
@@ -34,8 +34,8 @@ void talk_to_server::start(ip::tcp::endpoint ep) {
 typedef boost::system::error_code error_code;
 typedef boost::shared_ptr<talk_to_server> ptr;
 
-ptr talk_to_server::start(io_service& service, ip::tcp::endpoint ep, const std::string& username, std::vector<Cube*>& cubes) {
-    ptr new_talk_to_server(new talk_to_server(service, username, cubes));
+ptr talk_to_server::start(io_service& service, ip::tcp::endpoint ep, const std::string& username, std::vector<Cube*>& tubes) {
+    ptr new_talk_to_server(new talk_to_server(service, username, tubes));
     new_talk_to_server->start(ep);
     return new_talk_to_server;
 }
@@ -101,7 +101,6 @@ void talk_to_server::on_move(const char ch) {
 
 void talk_to_server::on_read(const error_code& err, size_t bytes) {
     if (err) {
-        std::cout << "on_read  errrr" << std::endl;
         stop();
     }
     if (!started()) {
@@ -124,6 +123,10 @@ void talk_to_server::on_login() {
 }
 
 void talk_to_server::on_write(const error_code& err, size_t bytes) {
+    if (err) {
+        return;
+    }
+    std::cout << bytes << std::endl;
     do_read_enum();
 }
 void talk_to_server::do_read() {
@@ -137,7 +140,6 @@ void talk_to_server::do_write(const std::string& msg) {
         return;
     }
     std::copy(msg.begin(), msg.end(), write_buffer);
-    std::cout << msg << std::endl;
     m_sock.async_write_some(buffer(write_buffer, msg.size()), MEM_FN2(on_write, _1, _2));
 }
 void talk_to_server::do_write_enum(int x) {

@@ -1,18 +1,15 @@
 #pragma once
 
-#include "Object.h"
-
 // SDL
 #include <SDL2/SDL_image.h>
 
 // STL
 #include <string>
 
-
-class Block {
+class BlockTarget {
 public:
-    Block(int pos_x, int pos_y, std::string image_path);
-    Block(int pos_x, int pos_y, int pos_w, int pos_h, std::string image_path);
+    BlockTarget(int pos_x, int pos_y, std::string image_path);
+    BlockTarget(int pos_x, int pos_y, int pos_w, int pos_h, std::string image_path);
 
     // Inline
     int GetLeft() const {return pos.x;};
@@ -27,6 +24,13 @@ private:
     SDL_Rect pos;
     SDL_Texture* texture;
 };
+
+
+
+
+
+
+
 
 
 

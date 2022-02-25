@@ -22,14 +22,14 @@ class talk_to_server : public boost::enable_shared_from_this<talk_to_server>, bo
 {
 private:
     typedef talk_to_server self_type;
-    talk_to_server(io_service& service, const std::string& username, std::vector<Cube*>& cubes);
+    talk_to_server(io_service& service, const std::string& username, std::vector<Cube*>& tubes);
     void start(ip::tcp::endpoint ep);
 
 public:
     typedef boost::system::error_code error_code;
     typedef boost::shared_ptr<talk_to_server> ptr;
 
-    static ptr start(io_service& service, ip::tcp::endpoint ep, const std::string& username, std::vector<Cube*>& cubes);
+    static ptr start(io_service& service, ip::tcp::endpoint ep, const std::string& username, std::vector<Cube*>& tubes);
     void stop();
     bool started();
 
