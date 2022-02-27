@@ -15,6 +15,8 @@ enum {
     LOGIN,                  // 9    p
     LOGIN_OK,               // 10   a
     SERVER_QUIT,            // 11   s
+    NEXT_LEVEL,             // 12   d
+    RESTART,                // 13   f
 };
 
 

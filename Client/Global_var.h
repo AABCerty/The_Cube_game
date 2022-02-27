@@ -4,6 +4,7 @@
 #include "Block.h"
 #include "boost_tcp_client.h"
 #include "BlockTarget.h"
+#include "BlockUnsafe.h"
 
 // Boost ASIO
 #include <boost/asio.hpp>
@@ -15,6 +16,8 @@
 
 extern int SCREEN_WIDTH;
 extern int SCREEN_HEIGHT;
+const int SCREEN_FPS = 60;
+const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
 extern SDL_Renderer *ren;
 extern SDL_Window *win;
@@ -22,6 +25,8 @@ extern SDL_Window *win;
 extern std::vector<Cube*> cubes;
 extern std::vector<Block*> blocks;
 extern std::vector<BlockTarget*> blocksTarget;
+extern std::vector<BlockUnsafe*> blocksUnsafe;
+extern std::vector<SDL_Texture*> texturesMenu;
 
 SDL_Texture* LoadImagePNG(std::string& file);
 SDL_Texture* LoadImagePNG(const char* c_string);
@@ -48,6 +53,7 @@ void NextLevel();
 
 void LoadMap(int level);
 
+void Restart();
 
 
 

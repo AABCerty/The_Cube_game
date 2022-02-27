@@ -189,7 +189,19 @@ void handle_accept(talk_to_client::ptr client, const boost::system::error_code& 
     acc.async_accept(new_client->sock(), boost::bind(handle_accept, new_client, _1));
 }
 
+void ServerRun() {
+    while (true) {
+        std::cout << "Enter your request: ";
+        std::string str;
+        std::getline(std::cin, str);
+        if (str == "exit") {
+            exit(1);
+        }
+    }
+}
+
 int main() {
+    auto f = std::async([&]{ServerRun();});
     std::cout << "enum: " << LOGIN << std::endl;
     std::cout << "enum_to_char: " << static_cast<char>(LOGIN) << std::endl;
     std::cout << "enum_to_int: " << static_cast<int>(LOGIN) << std::endl;

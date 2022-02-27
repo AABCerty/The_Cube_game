@@ -10,6 +10,8 @@ SDL_Window *win = nullptr;
 std::vector<Cube*> cubes;
 std::vector<Block*> blocks;
 std::vector<BlockTarget*> blocksTarget;
+std::vector<BlockUnsafe*> blocksUnsafe;
+std::vector<SDL_Texture*> texturesMenu;
 
 SDL_Texture* LoadImagePNG(std::string& file){
     SDL_Surface *loadedImage = nullptr;
@@ -37,7 +39,7 @@ SDL_Texture* LoadImagePNG(const char* c_string){
     return texture;
 }
 
-int current_level = 1;
+int current_level = 0;
 bool flag_delay = false;
 SDL_Texture* texture_background = nullptr;
 
@@ -61,7 +63,8 @@ void NextLevel() {
     } else {
         current_level++;
     }
-    LoadMap(current_level-1);
+    LoadMap(current_level);
+
 }
 
 void LoadMap(int level) {
@@ -72,28 +75,49 @@ void LoadMap(int level) {
     for (auto& block : blocksTarget) {
         SDL_DestroyTexture(block->GetTexture());
     }
+    for (auto& block : blocksUnsafe) {
+        SDL_DestroyTexture(block->GetTexture());
+    }
     blocks.clear();
     blocksTarget.clear();
-    texture_background = LoadImagePNG(backgrounds[level]);
-    int count = 0;
-    for (int i = 0; i < 15; i++) {
-        for (int j = 0; j < 20; j++) {
-            if (levels[level][i][j] == 'X'){
-                new Block(j*32, i*32, "resources/block_3.png");
-            }
-            if (levels[level][i][j] == 'T'){
-                new BlockTarget(j*32, i*32, "resources/blockTarget_1.png");
-            }
-            if (levels[level][i][j] == 'C'){
-                cubes[count]->SetX(j*32);
-                cubes[count]->SetY(i*32);
-                count++;
+    blocksUnsafe.clear();
+    if (level == 0) {
+        for (int i = 0; i < cubes.size(); i++) {
+            cubes[i]->SetShow(false);
+        }
+        texture_background = LoadImagePNG("resources/img/levels/level_0/level_0_bg.png");
+        // NEED to REWORK class menu;
+        if (texturesMenu.size() == 0) {
+            texturesMenu.push_back(LoadImagePNG("resources/img/levels/level_0/menu_1.png"));
+            texturesMenu.push_back(LoadImagePNG("resources/img/levels/level_0/new_game_1.png"));
+            texturesMenu.push_back(LoadImagePNG("resources/img/levels/level_0/exit_1.png"));
+        }
+    } else {
+        texture_background = LoadImagePNG(backgrounds[level-1]);
+        int cubeNumber = 0;
+        for (int i = 0; i < 15; i++) {
+            for (int j = 0; j < 20; j++) {
+                if (levels[level-1][i][j] == 'X') {
+                    new Block(j*32, i*32, "resources/block_3.png");
+                } else if (levels[level-1][i][j] == 'T') {
+                    new BlockTarget(j*32, i*32, "resources/blockTarget_1.png");
+                } else if (levels[level-1][i][j] == 'U') {
+                    new BlockUnsafe(j*32, i*32, "resources/blockUnsafe_1.png");
+                } else if (levels[level-1][i][j] == 'C') {
+                    cubes[cubeNumber]->SetShow(true);
+                    cubes[cubeNumber]->SetX(j*32);
+                    cubes[cubeNumber]->SetY(i*32);
+                    cubeNumber++;
+                }
             }
         }
     }
 }
 
-
+void Restart() {
+    current_level = 0;
+    LoadMap(0);
+}
 
 
 

@@ -30,6 +30,10 @@ char EnumToChar(int x) {
         return 'a';
     } else if (x == 11) {
         return 's';
+    } else if (x == 12) {
+        return 'd';
+    } else if (x == 13) {
+        return 'f';
     }
     return 'a';
 }

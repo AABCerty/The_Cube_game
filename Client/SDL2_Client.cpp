@@ -4,6 +4,8 @@
 #include "Cube.h"
 #include "Block.h"
 #include "Levels.h"
+#include "LTimer.h"
+
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -13,7 +15,9 @@
 #include <vector>
 #include <sstream>
 #include <future>
+#include <chrono>
 
+void ListenMouseEvent();
 void RenderAll();
 void LoadCubes();
 void ListenEvent();
@@ -37,21 +41,63 @@ int main() {
 
 /********************************************************************************/
 //  Client - Server
-    //ip::tcp::endpoint ep(ip::address::from_string("195.161.68.193"), 2001);
-    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
+    ip::tcp::endpoint ep(ip::address::from_string("195.161.68.193"), 2001);
+    //ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
     client = talk_to_server::start(service, ep, "aa", ::cubes);
     auto f = std::async([&]{service.run();});
 /*******************************************************************************/
+    std::chrono::time_point<std::chrono::system_clock> m_StartTime;
+    std::chrono::time_point<std::chrono::system_clock> m_EndTime;
+    LTimer capTimer;
     // Main
     while (run) {
+        m_StartTime = std::chrono::system_clock::now();
+        capTimer.start();
         ListenEvent();
         MoveIf();
+
         RenderAll();
+
+        //If frame finished early
+        int frameTicks = capTimer.getTicks();
+        if(frameTicks < SCREEN_TICKS_PER_FRAME) {
+            //Wait remaining time
+            //SDL_Delay(SCREEN_TICKS_PER_FRAME - frameTicks);
+           // SDL_Delay(200);
+        }
+        m_EndTime = std::chrono::system_clock::now();
+       // std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(m_EndTime - m_StartTime).count() * 60 << std::endl;
+       // std::cout << SCREEN_TICKS_PER_FRAME << " " << frameTicks << std::endl;
    }
 /*******************************************************************************/
 
     Quit();
     return 0;
+}
+
+void ListenMouseEvent() {
+    if (current_level == 0) {
+        if (e.type == SDL_MOUSEMOTION || e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
+            int x, y;
+            SDL_GetMouseState( &x, &y );
+            if (x >= 200 && x <= 400 && y >= 200 && y <= 250) {
+                texturesMenu[1] = LoadImagePNG("resources/img/levels/level_0/new_game_2.png");
+                if (e.type == SDL_MOUSEBUTTONDOWN) {
+                    NextLevel();
+                }
+            } else {
+                texturesMenu[1] = LoadImagePNG("resources/img/levels/level_0/new_game_1.png");
+            }
+            if (x >= 200 && x <= 400 && y >= 300 && y <= 350) {
+                texturesMenu[2] = LoadImagePNG("resources/img/levels/level_0/exit_2.png");
+                if (e.type == SDL_MOUSEBUTTONDOWN) {
+                    exit(1);
+                }
+            } else {
+                texturesMenu[2] = LoadImagePNG("resources/img/levels/level_0/exit_1.png");
+            }
+        }
+    }
 }
 
 void ListenEvent() {
@@ -64,6 +110,7 @@ void ListenEvent() {
             client->do_write_enum(SERVER_QUIT);
             run = false;
         }
+        ListenMouseEvent();
     }
     if (keys[SDL_SCANCODE_DOWN]) {
         input_down = true;
@@ -86,6 +133,7 @@ void ListenEvent() {
         input_left = false;
     }
     if (keys[SDL_SCANCODE_N]) {
+        client->do_write_enum(NEXT_LEVEL);
         NextLevel();
         flag_delay = true;
     }
@@ -165,9 +213,18 @@ void Quit() {
     for (auto& block : blocks) {
         SDL_DestroyTexture(block->GetTexture());
     }
+    for (auto& block : blocksTarget) {
+        SDL_DestroyTexture(block->GetTexture());
+    }
+    for (auto& block : blocksUnsafe) {
+        SDL_DestroyTexture(block->GetTexture());
+    }
     for (auto& cube : ::cubes) {
         SDL_DestroyTexture(cube->GetTexture());
     }
+    blocks.clear();
+    blocksTarget.clear();
+    blocksUnsafe.clear();
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
     IMG_Quit();
@@ -183,14 +240,31 @@ void LoadCubes() {
 void RenderAll() {
     SDL_RenderClear(ren);
     SDL_RenderCopy(ren, texture_background, NULL, NULL);
+    if (current_level == 0) {
+        int x = 200;
+        int y = 100;
+        for (auto& tex : texturesMenu) {
+            SDL_Rect pos;
+            pos.x = x;
+            pos.y = y;
+            SDL_QueryTexture(tex, NULL, NULL, &pos.w, &pos.h);
+            SDL_RenderCopy(ren, tex, NULL, &pos);
+            y += 100;
+        }
+    }
     for (auto& block : blocks) {
         SDL_RenderCopy(ren, block->GetTexture(), NULL, block->GetPos());
     }
     for (auto& block : blocksTarget) {
         SDL_RenderCopy(ren, block->GetTexture(), NULL, block->GetPos());
     }
+    for (auto& block : blocksUnsafe) {
+        SDL_RenderCopy(ren, block->GetTexture(), NULL, block->GetPos());
+    }
     for (auto& cube : ::cubes) {
-        SDL_RenderCopy(ren, cube->GetTexture(), NULL, cube->GetPos());
+        if (cube->IsShow()) {
+            SDL_RenderCopy(ren, cube->GetTexture(), NULL, cube->GetPos());
+        }
     }
     SDL_RenderPresent(ren);
 }

@@ -8,7 +8,7 @@
 // STL
 #include <iostream>
 
-Cube::Cube(int pos_x, int pos_y, std::string image_path) : spd(1), texture(LoadImagePNG(image_path)) {
+Cube::Cube(int pos_x, int pos_y, std::string image_path) : spd(1), texture(LoadImagePNG(image_path)), m_Show(false) {
     cubes.push_back(this);
     id = cubes.size() - 1;
     pos.x = pos_x;
@@ -49,21 +49,23 @@ void Cube::Move(int rrt) {
 
     // Target
     if (CollisionBlocksTarget(cubes[0]->pos.x, cubes[0]->pos.y) && CollisionBlocksTarget(cubes[1]->pos.x, cubes[1]->pos.y) && CollisionBlocksTarget(cubes[2]->pos.x, cubes[2]->pos.y)) {
+        client->do_write_enum(NEXT_LEVEL);
         NextLevel();
     }
-
+    // Unsafe
+    // NEED to Rework
     /*
-    for (int i = 0; i < cubes.size(); i++) {
-        if (CollisionBlocksTarget(pos.x, pos.y)){
-            finishedNum++;
-        }
-    }
-    if (finishedNum == cubes.size()) {
-        NextLevel();
+    if (CollisionBlocksUnsafe(cubes[0]->pos.x, cubes[0]->pos.y) || CollisionBlocksUnsafe(cubes[1]->pos.x, cubes[1]->pos.y) || CollisionBlocksUnsafe(cubes[2]->pos.x, cubes[2]->pos.y)) {
+        client->do_write_enum(RESTART);
+        Restart();
     }
     */
+    if (CollisionBlocks<BlockUnsafe>(cubes[0]->pos.x, cubes[0]->pos.y, blocksUnsafe) || CollisionBlocksUnsafe(cubes[1]->pos.x, cubes[1]->pos.y) || CollisionBlocksUnsafe(cubes[2]->pos.x, cubes[2]->pos.y)) {
+        client->do_write_enum(RESTART);
+        Restart();
+    }
 }
-
+/************************************************************************/
 bool Cube::Collision(const int x, const int y, const Cube& other) {
     // NEED to rewrite
     if (y + pos.h <= other.GetTop() || y >= other.GetBottom() || x + pos.w <= other.GetLeft() || x >= other.GetRight()) {
@@ -73,7 +75,6 @@ bool Cube::Collision(const int x, const int y, const Cube& other) {
     }
     return false;
 }
-
 bool Cube::Collision(const int x, const int y, const Block& other) {
     // NEED to rewrite
     if (y + pos.h <= other.GetTop() || y >= other.GetBottom() || x + pos.w <= other.GetLeft() || x >= other.GetRight()) {
@@ -92,6 +93,16 @@ bool Cube::Collision(const int x, const int y, const BlockTarget& other) {
     }
     return false;
 }
+bool Cube::Collision(const int x, const int y, const BlockUnsafe& other) {
+    // NEED to rewrite
+    if (y + pos.h <= other.GetTop() || y >= other.GetBottom() || x + pos.w <= other.GetLeft() || x >= other.GetRight()) {
+        return false;
+    } else {
+        return true;
+    }
+    return false;
+}
+/****************************************************************/
 bool Cube::CollisionBlocks(const int x, const int y) {
     for (const auto& block : blocks) {
         if (Collision(x, y, *block)){
@@ -100,7 +111,6 @@ bool Cube::CollisionBlocks(const int x, const int y) {
     }
     return false;
 }
-
 bool Cube::CollisionCubes(const int x, const int y) {
     for (const auto& cube : cubes) {
         if (cube->id != id) {
@@ -119,5 +129,32 @@ bool Cube::CollisionBlocksTarget(const int x, const int y) {
     }
     return false;
 }
+bool Cube::CollisionBlocksUnsafe(const int x, const int y) {
+    for (const auto& block : blocksUnsafe) {
+        if (Collision<BlockUnsafe>(x, y, *block)){
+            return true;
+        }
+    }
+    return false;
+}
+/******************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

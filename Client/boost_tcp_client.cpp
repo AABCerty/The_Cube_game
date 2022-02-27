@@ -1,5 +1,6 @@
 #include "boost_tcp_client.h"
 #include "Server_request.h"
+#include "Global_var.h"
 
 // boost
 #include <boost/asio.hpp>
@@ -111,6 +112,10 @@ void talk_to_server::on_read(const error_code& err, size_t bytes) {
     for (const auto& ch : msg) {
         if (ch == EnumToChar(LOGIN_OK)) {
             on_login();
+        } else if (ch == EnumToChar(NEXT_LEVEL)) {
+            NextLevel();
+        } else if (ch == EnumToChar(RESTART)) {
+            Restart();
         } else {
             on_move(ch);
         }
