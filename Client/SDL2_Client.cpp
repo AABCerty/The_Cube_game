@@ -2,7 +2,7 @@
 #include "boost_tcp_client.h"
 #include "Server_request.h"
 #include "Cube.h"
-#include "Block.h"
+#include "BlockSafe.h"
 #include "Levels.h"
 #include "LTimer.h"
 
@@ -22,7 +22,7 @@ void RenderAll();
 void LoadCubes();
 void ListenEvent();
 void MoveIf();
-void MoveCube(int x);
+void MoveCube(Request request);
 bool Init();
 void Quit();
 
@@ -107,33 +107,33 @@ void ListenEvent() {
     }
     while(SDL_PollEvent(&e) != 0) {
         if (e.type == SDL_QUIT) {
-            client->do_write_enum(SERVER_QUIT);
+            client->do_write_enum(Request::SERVER_QUIT);
             run = false;
         }
         ListenMouseEvent();
     }
-    if (keys[SDL_SCANCODE_DOWN]) {
+    if (KEYS[SDL_SCANCODE_DOWN]) {
         input_down = true;
     } else {
         input_down = false;
     }
-    if (keys[SDL_SCANCODE_UP]) {
+    if (KEYS[SDL_SCANCODE_UP]) {
         input_up = true;
     } else {
         input_up = false;
     }
-    if (keys[SDL_SCANCODE_RIGHT]) {
+    if (KEYS[SDL_SCANCODE_RIGHT]) {
         input_right = true;
     } else {
         input_right = false;
     }
-    if (keys[SDL_SCANCODE_LEFT]) {
+    if (KEYS[SDL_SCANCODE_LEFT]) {
         input_left = true;
     } else {
         input_left = false;
     }
-    if (keys[SDL_SCANCODE_N]) {
-        client->do_write_enum(NEXT_LEVEL);
+    if (KEYS[SDL_SCANCODE_N]) {
+        client->do_write_enum(Request::NEXT_LEVEL);
         NextLevel();
         flag_delay = true;
     }
@@ -145,35 +145,35 @@ void MoveIf() {
     if (moveX != 0 || moveY != 0) {
         if (moveX != 0 && moveY != 0) {
             if (moveX > 0 && moveY > 0) {
-                MoveCube(X_PLUS_Y_PLUS);
+                MoveCube(Request::X_PLUS_Y_PLUS);
             } else if (moveX > 0 && moveY < 0) {
-                MoveCube(X_PLUS_Y_MINUS);
+                MoveCube(Request::X_PLUS_Y_MINUS);
             } else if (moveX < 0 && moveY > 0) {
-                MoveCube(X_MINUS_Y_PLUS);
+                MoveCube(Request::X_MINUS_Y_PLUS);
             } else if (moveX < 0 && moveY < 0) {
-                MoveCube(X_MINUS_Y_MINUS);
+                MoveCube(Request::X_MINUS_Y_MINUS);
             }
         } else if (moveX == 0) {
             if (moveY > 0) {
-                MoveCube(Y_PLUS);
+                MoveCube(Request::Y_PLUS);
             } else {
-                MoveCube(Y_MINUS);
+                MoveCube(Request::Y_MINUS);
             }
         } else {
             if (moveX > 0) {
-                MoveCube(X_PLUS);
+                MoveCube(Request::X_PLUS);
             } else {
-                MoveCube(X_MINUS);
+                MoveCube(Request::X_MINUS);
             }
         }
     }
 }
 
-void MoveCube(int x) {  // Inline ?
+void MoveCube(Request request) {  // Inline ?
     for (auto& cube : ::cubes) {
-        cube->Move(x);
+        cube->Move(request);
     }
-    client->do_write_enum(x);
+    client->do_write_enum(request);
 }
 
 bool Init() {
@@ -210,7 +210,7 @@ bool Init() {
 
 void Quit() {
     SDL_DestroyTexture(texture_background);
-    for (auto& block : blocks) {
+    for (auto& block : blocksSafe) {
         SDL_DestroyTexture(block->GetTexture());
     }
     for (auto& block : blocksTarget) {
@@ -222,7 +222,7 @@ void Quit() {
     for (auto& cube : ::cubes) {
         SDL_DestroyTexture(cube->GetTexture());
     }
-    blocks.clear();
+    blocksSafe.clear();
     blocksTarget.clear();
     blocksUnsafe.clear();
     SDL_DestroyRenderer(ren);
@@ -252,7 +252,7 @@ void RenderAll() {
             y += 100;
         }
     }
-    for (auto& block : blocks) {
+    for (auto& block : blocksSafe) {
         SDL_RenderCopy(ren, block->GetTexture(), NULL, block->GetPos());
     }
     for (auto& block : blocksTarget) {

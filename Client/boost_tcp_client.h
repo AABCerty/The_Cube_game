@@ -10,6 +10,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/core/noncopyable.hpp>
+
 // STL
 #include <iostream>
 #include <vector>
@@ -35,7 +36,7 @@ public:
 
     ip::tcp::socket m_sock;
     void do_write(const std::string& msg);
-    void do_write_enum(int x);
+    void do_write_enum(Request request);
 
 private:
     void on_connect(const error_code& err);

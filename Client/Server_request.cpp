@@ -2,66 +2,54 @@
 
 #include <string>
 #include <iostream>
-#include <map>
 
-char EnumToChar(int x) {
-    // Switch
-    if (x == 0) {
-        return 'q';
-    } else if (x == 1) {
-        return 'w';
-    } else if (x == 2) {
-        return 'e';
-    } else if (x == 3) {
-        return 'r';
-    } else if (x == 4) {
-        return 't';
-    } else if (x == 5) {
-        return 'y';
-    } else if (x == 6) {
-        return 'u';
-    } else if (x == 7) {
-        return 'i';
-    } else if (x == 8) {
-        return 'o';
-    } else if (x == 9) {
-        return 'p';
-    } else if (x == 10) {
-        return 'a';
-    } else if (x == 11) {
-        return 's';
-    } else if (x == 12) {
-        return 'd';
-    } else if (x == 13) {
-        return 'f';
+char EnumToChar(const Request request) {
+    switch (request) {
+        case Request::QUIT :            return 'q';
+        case Request::X_PLUS_Y_PLUS :   return 'w';
+        case Request::X_PLUS_Y_MINUS :  return 'e';
+        case Request::X_MINUS_Y_PLUS :  return 'r';
+        case Request::X_MINUS_Y_MINUS : return 't';
+        case Request::X_PLUS :          return 'y';
+        case Request::X_MINUS :         return 'u';
+        case Request::Y_PLUS :          return 'i';
+        case Request::Y_MINUS :         return 'o';
+        case Request::LOGIN :           return 'p';
+        case Request::LOGIN_OK :        return 'a';
+        case Request::SERVER_QUIT :     return 's';
+        case Request::NEXT_LEVEL :      return 'd';
+        case Request::RESTART :         return 'f';
     }
-    return 'a';
+    return 'q';
 }
 
-std::string EnumToString(int x) {
+
+
+std::string EnumToString(const Request request) {
     std::string str = "A";
-    str[0] = EnumToChar(x);
+    str[0] = EnumToChar(request);
     return str;
 }
 
-std::pair<int, int> EnumToMove(int x) {
-    // Switch
-    if (x == X_PLUS_Y_PLUS) {
-        return {1,1};
-    } else if (x == X_PLUS_Y_MINUS) {
-        return {1, -1};
-    } else if (x == X_MINUS_Y_PLUS) {
-        return {-1, 1};
-    } else if (x == X_MINUS_Y_MINUS) {
-        return {-1, -1};
-    } else if (x == X_PLUS) {
-        return {1, 0};
-    } else if (x == X_MINUS) {
-        return {-1, 0};
-    } else if (x == Y_PLUS) {
-        return {0, 1};
-    } else if (x == Y_MINUS) {
-        return {0, -1};
+
+
+std::pair<int, int> EnumToMove(const Request request) {
+    switch (request) {
+        case Request::X_PLUS_Y_PLUS :   return {1, 1};
+        case Request::X_PLUS_Y_MINUS :  return {1, -1};
+        case Request::X_MINUS_Y_PLUS :  return {-1, 1};
+        case Request::X_MINUS_Y_MINUS : return {-1, -1};
+        case Request::X_PLUS :          return {1, 0};
+        case Request::X_MINUS :         return {-1, 0};
+        case Request::Y_PLUS :          return {0, 1};
+        case Request::Y_MINUS :         return {0, -1};
+        case Request::QUIT :
+        case Request::LOGIN :
+        case Request::LOGIN_OK :
+        case Request::SERVER_QUIT :
+        case Request::NEXT_LEVEL :
+        case Request::RESTART :         ;
     }
     return {0, 0};
 }
+

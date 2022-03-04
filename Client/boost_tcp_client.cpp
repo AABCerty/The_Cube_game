@@ -57,44 +57,44 @@ bool talk_to_server::started() {
 void talk_to_server::on_connect(const error_code& err) {
     std::cout << "Connected" << std::endl;
     if (!err) {
-        do_write(EnumToString(LOGIN) + s_username + "\n");
+        do_write(EnumToString(Request::LOGIN) + s_username + "\n");
     } else {
         stop();
     }
 }
 
 void talk_to_server::on_move(const char ch) {
-    if (ch == EnumToChar(X_PLUS_Y_PLUS)) {
+    if (ch == EnumToChar(Request::X_PLUS_Y_PLUS)) {
         for (auto& x : m_cubes) {
-            x->Move(X_PLUS_Y_PLUS);
+            x->Move(Request::X_PLUS_Y_PLUS);
         }
-    } else if (ch == EnumToChar(X_PLUS_Y_MINUS)) {
+    } else if (ch == EnumToChar(Request::X_PLUS_Y_MINUS)) {
         for (auto& x : m_cubes) {
-            x->Move(X_PLUS_Y_MINUS);
+            x->Move(Request::X_PLUS_Y_MINUS);
         }
-    } else if (ch == EnumToChar(X_MINUS_Y_PLUS)) {
+    } else if (ch == EnumToChar(Request::X_MINUS_Y_PLUS)) {
         for (auto& x : m_cubes) {
-            x->Move(X_MINUS_Y_PLUS);
+            x->Move(Request::X_MINUS_Y_PLUS);
         }
-    } else if (ch == EnumToChar(X_MINUS_Y_MINUS)) {
+    } else if (ch == EnumToChar(Request::X_MINUS_Y_MINUS)) {
         for (auto& x : m_cubes) {
-            x->Move(X_MINUS_Y_MINUS);
+            x->Move(Request::X_MINUS_Y_MINUS);
         }
-    } else if (ch == EnumToChar(X_PLUS)) {
+    } else if (ch == EnumToChar(Request::X_PLUS)) {
         for (auto& x : m_cubes) {
-            x->Move(X_PLUS);
+            x->Move(Request::X_PLUS);
         }
-    } else if (ch == EnumToChar(X_MINUS)) {
+    } else if (ch == EnumToChar(Request::X_MINUS)) {
         for (auto& x : m_cubes) {
-            x->Move(X_MINUS);
+            x->Move(Request::X_MINUS);
         }
-    } else if (ch == EnumToChar(Y_PLUS)) {
+    } else if (ch == EnumToChar(Request::Y_PLUS)) {
         for (auto& x : m_cubes) {
-            x->Move(Y_PLUS);
+            x->Move(Request::Y_PLUS);
         }
-    } else if (ch == EnumToChar(Y_MINUS)) {
+    } else if (ch == EnumToChar(Request::Y_MINUS)) {
         for (auto& x : m_cubes) {
-            x->Move(Y_MINUS);
+            x->Move(Request::Y_MINUS);
         }
     }
     do_read_enum();
@@ -110,11 +110,11 @@ void talk_to_server::on_read(const error_code& err, size_t bytes) {
     std::string msg(read_buffer, bytes);
     std::cout << "MSG: " << msg << std::endl;
     for (const auto& ch : msg) {
-        if (ch == EnumToChar(LOGIN_OK)) {
+        if (ch == EnumToChar(Request::LOGIN_OK)) {
             on_login();
-        } else if (ch == EnumToChar(NEXT_LEVEL)) {
+        } else if (ch == EnumToChar(Request::NEXT_LEVEL)) {
             NextLevel();
-        } else if (ch == EnumToChar(RESTART)) {
+        } else if (ch == EnumToChar(Request::RESTART)) {
             Restart();
         } else {
             on_move(ch);
@@ -147,11 +147,11 @@ void talk_to_server::do_write(const std::string& msg) {
     std::copy(msg.begin(), msg.end(), write_buffer);
     m_sock.async_write_some(buffer(write_buffer, msg.size()), MEM_FN2(on_write, _1, _2));
 }
-void talk_to_server::do_write_enum(int x) {
+void talk_to_server::do_write_enum(Request request) {
     if (!b_started) {
         return;
     }
-    m_sock.async_write_some(buffer(EnumToString(x)), MEM_FN2(on_write, _1, _2));
+    m_sock.async_write_some(buffer(EnumToString(request)), MEM_FN2(on_write, _1, _2));
 }
 
 size_t talk_to_server::read_complete(const boost::system::error_code& err, size_t bytes) {

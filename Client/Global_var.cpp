@@ -6,59 +6,45 @@ int SCREEN_HEIGHT = 480;
 
 SDL_Renderer *ren = nullptr;
 SDL_Window *win = nullptr;
+SDL_Texture* texture_background = nullptr;
+const Uint8* KEYS = SDL_GetKeyboardState(NULL);
+SDL_Event e;
 
 std::vector<Cube*> cubes;
-std::vector<Block*> blocks;
+std::vector<BlockSafe*> blocksSafe;
 std::vector<BlockTarget*> blocksTarget;
 std::vector<BlockUnsafe*> blocksUnsafe;
 std::vector<SDL_Texture*> texturesMenu;
 
-SDL_Texture* LoadImagePNG(std::string& file){
-    SDL_Surface *loadedImage = nullptr;
-    SDL_Texture *texture = nullptr;
-    loadedImage = IMG_Load(file.c_str());
-    if (loadedImage){
-        texture = SDL_CreateTextureFromSurface(ren, loadedImage);
-        SDL_FreeSurface(loadedImage);
-    } else {
-        std::cout << IMG_GetError() << std::endl;
-    }
-    return texture;
-}
-
-SDL_Texture* LoadImagePNG(const char* c_string){
-    SDL_Surface *loadedImage = nullptr;
-    SDL_Texture *texture = nullptr;
-    loadedImage = IMG_Load(c_string);
-    if (loadedImage){
-        texture = SDL_CreateTextureFromSurface(ren, loadedImage);
-        SDL_FreeSurface(loadedImage);
-    } else {
-        std::cout << IMG_GetError() << std::endl;
-    }
-    return texture;
-}
-
-int current_level = 0;
-bool flag_delay = false;
-SDL_Texture* texture_background = nullptr;
-
-
-
 io_service service;
 talk_to_server::ptr client;
 
-SDL_Event e;
 bool input_right = false;
 bool input_left = false;
 bool input_up = false;
 bool input_down = false;
-const Uint8* keys = SDL_GetKeyboardState(NULL);
-bool run = true;
 
+int current_level = 0;
+bool run = true;
+// NEED?
+bool flag_delay = false;
+
+/******************************************************************************/
+SDL_Texture* LoadImagePNG(std::string_view file){
+    SDL_Surface *loadedImage = nullptr;
+    SDL_Texture *texture = nullptr;
+    loadedImage = IMG_Load(file.data());
+    if (loadedImage){
+        texture = SDL_CreateTextureFromSurface(ren, loadedImage);
+        SDL_FreeSurface(loadedImage);
+    } else {
+        std::cout << IMG_GetError() << std::endl;
+    }
+    return texture;
+}
 
 void NextLevel() {
-    if (current_level + 1 > max_levels) {
+    if (current_level + 1 > MAX_LEVELS) {
         current_level = 1;
     } else {
         current_level++;
@@ -69,7 +55,7 @@ void NextLevel() {
 
 void LoadMap(int level) {
     SDL_DestroyTexture(texture_background);
-    for (auto& block : blocks) {
+    for (auto& block : blocksSafe) {
         SDL_DestroyTexture(block->GetTexture());
     }
     for (auto& block : blocksTarget) {
@@ -78,11 +64,11 @@ void LoadMap(int level) {
     for (auto& block : blocksUnsafe) {
         SDL_DestroyTexture(block->GetTexture());
     }
-    blocks.clear();
+    blocksSafe.clear();
     blocksTarget.clear();
     blocksUnsafe.clear();
     if (level == 0) {
-        for (int i = 0; i < cubes.size(); i++) {
+        for (size_t i = 0; i < cubes.size(); i++) {
             cubes[i]->SetShow(false);
         }
         texture_background = LoadImagePNG("resources/img/levels/level_0/level_0_bg.png");
@@ -97,13 +83,14 @@ void LoadMap(int level) {
         int cubeNumber = 0;
         for (int i = 0; i < 15; i++) {
             for (int j = 0; j < 20; j++) {
-                if (levels[level-1][i][j] == 'X') {
-                    new Block(j*32, i*32, "resources/block_3.png");
-                } else if (levels[level-1][i][j] == 'T') {
+                // switch
+                if (levels_map[level-1][i][j] == 'X') {
+                    new BlockSafe(j*32, i*32, "resources/block_3.png");
+                } else if (levels_map[level-1][i][j] == 'T') {
                     new BlockTarget(j*32, i*32, "resources/blockTarget_1.png");
-                } else if (levels[level-1][i][j] == 'U') {
+                } else if (levels_map[level-1][i][j] == 'U') {
                     new BlockUnsafe(j*32, i*32, "resources/blockUnsafe_1.png");
-                } else if (levels[level-1][i][j] == 'C') {
+                } else if (levels_map[level-1][i][j] == 'C') {
                     cubes[cubeNumber]->SetShow(true);
                     cubes[cubeNumber]->SetX(j*32);
                     cubes[cubeNumber]->SetY(i*32);

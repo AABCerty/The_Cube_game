@@ -2,7 +2,7 @@
 
 #include <string>
 
-enum {
+enum class Request {
     QUIT,                   // 0    q
     X_PLUS_Y_PLUS,          // 1    w
     X_PLUS_Y_MINUS,         // 2    e
@@ -20,12 +20,11 @@ enum {
 };
 
 
-char EnumToChar(int x);
+char EnumToChar(const Request request);
 
-std::string EnumToString(int x);
+std::string EnumToString(const Request request);
 
-
-std::pair<int, int> EnumToMove(int x);
+std::pair<int, int> EnumToMove(const Request request);
 
 
 
