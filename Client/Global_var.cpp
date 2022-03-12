@@ -1,6 +1,9 @@
 #include "Global_var.h"
 #include "Levels.h"
 
+// STL
+#include <iostream>
+
 int SCREEN_WIDTH = 640;
 int SCREEN_HEIGHT = 480;
 
@@ -14,7 +17,10 @@ std::vector<Cube*> cubes;
 std::vector<BlockSafe*> blocksSafe;
 std::vector<BlockTarget*> blocksTarget;
 std::vector<BlockUnsafe*> blocksUnsafe;
-std::vector<SDL_Texture*> texturesMenu;
+//std::vector<SDL_Texture*> texturesMenu;
+
+Menu* menu = nullptr;
+
 
 io_service service;
 talk_to_server::ptr client;
@@ -26,11 +32,14 @@ bool input_down = false;
 
 int current_level = 0;
 bool run = true;
-// NEED?
+// NEED ?
 bool flag_delay = false;
 
+bool isTextListen = false;
+std::string textListen;
+
 /******************************************************************************/
-SDL_Texture* LoadImagePNG(std::string_view file){
+SDL_Texture* LoadImagePNG(const std::string_view file){
     SDL_Surface *loadedImage = nullptr;
     SDL_Texture *texture = nullptr;
     loadedImage = IMG_Load(file.data());
@@ -53,8 +62,8 @@ void NextLevel() {
 
 }
 
-void LoadMap(int level) {
-    SDL_DestroyTexture(texture_background);
+void LoadMap(const int level) {
+    //SDL_DestroyTexture(texture_background);
     for (auto& block : blocksSafe) {
         SDL_DestroyTexture(block->GetTexture());
     }
@@ -68,16 +77,7 @@ void LoadMap(int level) {
     blocksTarget.clear();
     blocksUnsafe.clear();
     if (level == 0) {
-        for (size_t i = 0; i < cubes.size(); i++) {
-            cubes[i]->SetShow(false);
-        }
-        texture_background = LoadImagePNG("resources/img/levels/level_0/level_0_bg.png");
-        // NEED to REWORK class menu;
-        if (texturesMenu.size() == 0) {
-            texturesMenu.push_back(LoadImagePNG("resources/img/levels/level_0/menu_1.png"));
-            texturesMenu.push_back(LoadImagePNG("resources/img/levels/level_0/new_game_1.png"));
-            texturesMenu.push_back(LoadImagePNG("resources/img/levels/level_0/exit_1.png"));
-        }
+
     } else {
         texture_background = LoadImagePNG(backgrounds[level-1]);
         int cubeNumber = 0;

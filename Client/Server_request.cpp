@@ -1,9 +1,11 @@
 #include "Server_request.h"
 
-#include <string>
 #include <iostream>
 
 char EnumToChar(const Request request) {
+    /*
+    return 'a' + static_cast<int>(request);
+    */
     switch (request) {
         case Request::QUIT :            return 'q';
         case Request::X_PLUS_Y_PLUS :   return 'w';
@@ -19,6 +21,7 @@ char EnumToChar(const Request request) {
         case Request::SERVER_QUIT :     return 's';
         case Request::NEXT_LEVEL :      return 'd';
         case Request::RESTART :         return 'f';
+        case Request::TEXT :            return 'g';
     }
     return 'q';
 }
@@ -48,7 +51,8 @@ std::pair<int, int> EnumToMove(const Request request) {
         case Request::LOGIN_OK :
         case Request::SERVER_QUIT :
         case Request::NEXT_LEVEL :
-        case Request::RESTART :         ;
+        case Request::RESTART :
+        case Request::TEXT :            ;
     }
     return {0, 0};
 }

@@ -3,8 +3,7 @@
 #include "Object.h"
 
 // SDL
-#include <SDL2/SDL_image.h>
-
+#include "SDL2/SDL_image.h"
 // STL
 #include <string>
 

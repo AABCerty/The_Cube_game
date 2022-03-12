@@ -5,7 +5,7 @@
 #include "BlockSafe.h"
 #include "Levels.h"
 #include "LTimer.h"
-
+#include "Menu.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -36,16 +36,18 @@ int main() {
         return 1;
     }
 
+    menu = new Menu;
     LoadCubes();
     LoadMap(0);
 
 /********************************************************************************/
 //  Client - Server
-    ip::tcp::endpoint ep(ip::address::from_string("195.161.68.193"), 2001);
-    //ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
-    client = talk_to_server::start(service, ep, "aa", ::cubes);
+   // ip::tcp::endpoint ep(ip::address::from_string("195.161.68.193"), 2001);
+    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
+    client = talk_to_server::start1(ep);
     auto f = std::async([&]{service.run();});
 /*******************************************************************************/
+
     std::chrono::time_point<std::chrono::system_clock> m_StartTime;
     std::chrono::time_point<std::chrono::system_clock> m_EndTime;
     LTimer capTimer;
@@ -69,9 +71,11 @@ int main() {
        // std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(m_EndTime - m_StartTime).count() * 60 << std::endl;
        // std::cout << SCREEN_TICKS_PER_FRAME << " " << frameTicks << std::endl;
    }
+
 /*******************************************************************************/
 
     Quit();
+
     return 0;
 }
 
@@ -80,21 +84,19 @@ void ListenMouseEvent() {
         if (e.type == SDL_MOUSEMOTION || e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
             int x, y;
             SDL_GetMouseState( &x, &y );
-            if (x >= 200 && x <= 400 && y >= 200 && y <= 250) {
-                texturesMenu[1] = LoadImagePNG("resources/img/levels/level_0/new_game_2.png");
-                if (e.type == SDL_MOUSEBUTTONDOWN) {
-                    NextLevel();
+            int count = 0;
+            for (auto& textures : menu->GetTextures()) {
+                // NEED collision
+                if (x >= textures->GetLeft() && x <= textures->GetRight() && y >= textures->GetTop() && y <= textures->GetBottom()) {
+                    textures->SetPush(LTexture::MOUSE_ON);
+                    if (e.type == SDL_MOUSEBUTTONDOWN) {
+                       textures->Clicked();
+                       menu->Activated(count);
+                    }
+                } else {
+                    textures->SetPush(LTexture::NONE);
                 }
-            } else {
-                texturesMenu[1] = LoadImagePNG("resources/img/levels/level_0/new_game_1.png");
-            }
-            if (x >= 200 && x <= 400 && y >= 300 && y <= 350) {
-                texturesMenu[2] = LoadImagePNG("resources/img/levels/level_0/exit_2.png");
-                if (e.type == SDL_MOUSEBUTTONDOWN) {
-                    exit(1);
-                }
-            } else {
-                texturesMenu[2] = LoadImagePNG("resources/img/levels/level_0/exit_1.png");
+                ++count;
             }
         }
     }
@@ -107,7 +109,7 @@ void ListenEvent() {
     }
     while(SDL_PollEvent(&e) != 0) {
         if (e.type == SDL_QUIT) {
-            client->do_write_enum(Request::SERVER_QUIT);
+            client->do_write(Request::SERVER_QUIT);
             run = false;
         }
         ListenMouseEvent();
@@ -133,9 +135,23 @@ void ListenEvent() {
         input_left = false;
     }
     if (KEYS[SDL_SCANCODE_N]) {
-        client->do_write_enum(Request::NEXT_LEVEL);
+        client->do_write(Request::NEXT_LEVEL);
         NextLevel();
         flag_delay = true;
+    }
+    if (isTextListen) {
+        SDL_Delay(70);
+        if (KEYS[SDL_SCANCODE_A]) {
+            std::cout << "a" << std::endl;
+            textListen += 'a';
+        } else if (KEYS[SDL_SCANCODE_B]) {
+            std::cout << "b" << std::endl;
+            textListen += 'b';
+        } else if (KEYS[SDL_SCANCODE_C]) {
+            std::cout << "c" << std::endl;
+            textListen += '\n';
+            menu->Text();
+        }
     }
 }
 
@@ -169,11 +185,11 @@ void MoveIf() {
     }
 }
 
-void MoveCube(Request request) {  // Inline ?
+void MoveCube(Request request) {
     for (auto& cube : ::cubes) {
         cube->Move(request);
     }
-    client->do_write_enum(request);
+    client->do_write(request);
 }
 
 bool Init() {
@@ -232,25 +248,16 @@ void Quit() {
 }
 
 void LoadCubes() {
-    new Cube(50, 50, "resources/cube_1.png");
-    new Cube(300, 50, "resources/cube_2.png");
-    new Cube(50, 200, "resources/cube_3.png");
+    new Cube("resources/cube_1.png");
+    new Cube("resources/cube_2.png");
+    new Cube("resources/cube_3.png");
 }
 
 void RenderAll() {
     SDL_RenderClear(ren);
-    SDL_RenderCopy(ren, texture_background, NULL, NULL);
-    if (current_level == 0) {
-        int x = 200;
-        int y = 100;
-        for (auto& tex : texturesMenu) {
-            SDL_Rect pos;
-            pos.x = x;
-            pos.y = y;
-            SDL_QueryTexture(tex, NULL, NULL, &pos.w, &pos.h);
-            SDL_RenderCopy(ren, tex, NULL, &pos);
-            y += 100;
-        }
+    menu->Render();
+    if (current_level != 0) {
+        SDL_RenderCopy(ren, texture_background, NULL, NULL);
     }
     for (auto& block : blocksSafe) {
         SDL_RenderCopy(ren, block->GetTexture(), NULL, block->GetPos());

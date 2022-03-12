@@ -17,6 +17,7 @@ enum class Request {
     SERVER_QUIT,            // 11   s
     NEXT_LEVEL,             // 12   d
     RESTART,                // 13   f
+    TEXT,                   // 14   g
 };
 
 

@@ -5,12 +5,12 @@
 #include "boost_tcp_client.h"
 #include "BlockTarget.h"
 #include "BlockUnsafe.h"
+#include "Menu.h"
 
 // Boost ASIO
 #include <boost/asio.hpp>
 
 // STL
-#include <iostream>
 #include <vector>
 
 extern int SCREEN_WIDTH;
@@ -28,7 +28,9 @@ extern std::vector<Cube*> cubes;
 extern std::vector<BlockSafe*> blocksSafe;
 extern std::vector<BlockTarget*> blocksTarget;
 extern std::vector<BlockUnsafe*> blocksUnsafe;
-extern std::vector<SDL_Texture*> texturesMenu;
+//extern std::vector<SDL_Texture*> texturesMenu;
+
+extern Menu *menu;
 
 extern boost::asio::io_service service;
 extern talk_to_server::ptr client;
@@ -41,13 +43,15 @@ extern bool input_down;
 extern int current_level;
 const int MAX_LEVELS = 3;
 extern bool run;
-// NEED?
-extern bool flag_delay;
+extern bool flag_delay; // NEED?
+
+extern bool isTextListen;
+extern std::string textListen;
 
 /**********************************************************************/
-SDL_Texture* LoadImagePNG(std::string_view file);
+SDL_Texture* LoadImagePNG(const std::string_view file);
 void NextLevel();
-void LoadMap(int level);
+void LoadMap(const int level);
 void Restart();
 
 
